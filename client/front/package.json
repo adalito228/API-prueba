@@ -1,0 +1,16 @@
+{
+  "name": "api-prueba",
+  "private": true,
+  "verion": "0.0.0",
+  "type": "module",
+  
+  "devDependencies": {
+    "standard": "^17.1.0",
+    "vite": "^5.3.5"
+  },
+  "scripts": {
+    "dev": "vite --mode development",
+    "build": "vite build --mode production",
+    "preview": "vite preview"
+  }
+}
