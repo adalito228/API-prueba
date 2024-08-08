@@ -63,19 +63,20 @@ class Weather extends HTMLElement {
     apiTitle.appendChild(button)
 
     button.addEventListener('click', async () => {
-      const data = this.getApiData()
-      const responseWeather = this.getWeather({ data })
+      const data = await this.getApiData()
+      const responseWeather = await this.getWeather({ data })
 
-      const parsedWeatherData = await responseWeather.json()
+      if (responseWeather) {
+        const parsedWeatherData = await responseWeather.json()
 
-      const weatherDataFormated = parsedWeatherData.map(data => {
-        return Object.entries(data).reduce((acc, [key, value]) => {
-          acc[key] = value.trim().replace(',', '.')
-          return acc
-        }, {})
-      })
-
-      this.sendDataToServer({ DataFormated: weatherDataFormated })
+        const weatherDataFormated = parsedWeatherData.map(data => {
+          return Object.entries(data).reduce((acc, [key, value]) => {
+            acc[key] = value.trim().replace(',', '.')
+            return acc
+          }, {})
+        })
+        await this.sendDataToServer({ DataFormated: weatherDataFormated })
+      }
     })
   }
 
@@ -93,18 +94,18 @@ class Weather extends HTMLElement {
     return data
   }
 
-  async getWeather ({ data }) {
+  async getWeather ({ data }, retries = 3, delay = 1000) {
     let responseWeather = null
     try {
       responseWeather = await fetch(data.datos)
-      if (responseWeather.status === 404) {
-        data = this.getApiData()
-        this.getWeather({ data })
+      if (responseWeather.status === 404 && retries > 0) {
+        const newData = await this.getApiData()
+        await new Promise(resolve => setTimeout(resolve, delay))
+        await this.getWeather({ data: newData }, retries - 1, delay)
       }
     } catch (error) {
       console.error('Error al traer los datos del servidor AEMET', error.message)
     }
-
     return responseWeather
   }
 
